@@ -1,0 +1,842 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Приглашение для Анели</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Marck+Script&display=swap">
+<style>
+  /* Layout: one left-aligned column that walks through five stages. A clue strip stays on top and fills in as each game is won. Single committed night look. */
+  :root {
+    --night: #2a0f1f;
+    --wine: #4b1733;
+    --plum: #3a1228;
+    --rose: #ff7d96;
+    --rose-glow: rgba(255, 125, 150, 0.55);
+    --blush: #ffe1da;
+    --ember: #f5b86e;
+    --muted: #d3aeb7;
+    --deep-rose: #c93a63;
+    --deep-gold: #b86e14;
+    --card: rgba(255, 225, 218, 0.05);
+    --line: rgba(255, 225, 218, 0.2);
+    --line-strong: rgba(255, 225, 218, 0.5);
+    --display: "Marck Script", "Segoe Script", "Brush Script MT", cursive;
+    --text: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    box-sizing: border-box;
+    background-color: var(--night);
+    background-image:
+      radial-gradient(120% 80% at 90% 0%, var(--wine) 0%, transparent 60%),
+      radial-gradient(90% 60% at 0% 100%, var(--plum) 0%, transparent 70%);
+    background-attachment: fixed;
+    color: var(--blush);
+    font-family: var(--text);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px 40px;
+  }
+
+  #fx {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 34rem;
+    margin: 0 auto;
+  }
+
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mark { display: block; width: 30px; height: 28px; color: var(--rose); }
+  .stepnum {
+    margin: 0;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 14px; }
+  .bar i { display: block; height: 4px; border-radius: 2px; background: var(--line); transition: background 0.3s; }
+  .bar i.on { background: var(--rose); }
+
+  .clues {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 22px 0 0;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .clues dt {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .clues dd {
+    margin: 4px 0 0;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .clues dd.got { color: var(--blush); animation: glow 1.4s ease-out; }
+
+  .stage { padding-top: 26px; animation: enter 0.4s ease-out; }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ember);
+  }
+  .title {
+    margin: 0.2em 0;
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(2.7rem, 12vw, 4.6rem);
+    line-height: 1.05;
+    color: var(--blush);
+    text-wrap: balance;
+  }
+  .title.sm { font-size: clamp(2.3rem, 10vw, 3.5rem); }
+  .title:focus { outline: none; }
+  .lead { margin: 0; max-width: 32ch; font-size: 1.1rem; color: var(--muted); }
+
+  .meter { margin: 18px 0 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .meter b { color: var(--ember); }
+  .doneline { margin: 14px 0 0; font-weight: 600; color: var(--blush); }
+  .nextrow { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+
+  .btn {
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.2;
+    border-radius: 999px;
+    cursor: pointer;
+    padding: 0.8em 1.7em;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:focus-visible, .card:focus-visible, .heart:focus-visible, .linkbtn:focus-visible {
+    outline: 3px solid var(--ember);
+    outline-offset: 3px;
+  }
+  .primary { border: 0; background: var(--rose); color: var(--night); }
+  .ghost { background: transparent; color: var(--blush); border: 1.5px solid var(--line-strong); }
+  .linkbtn {
+    font: inherit;
+    font-size: 0.95rem;
+    background: none;
+    border: 0;
+    padding: 0.6em 0;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* Game 1: hearts */
+  .play {
+    position: relative;
+    overflow: hidden;
+    height: min(50svh, 22rem);
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--card);
+  }
+  .heart {
+    position: absolute;
+    left: calc(var(--x) * (100% - 52px));
+    bottom: -56px;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: var(--rose);
+    animation: rise var(--dur) linear forwards;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .heart svg { display: block; width: 100%; height: 100%; animation: sway 1.6s ease-in-out infinite alternate; }
+  .heart.c2 { color: var(--ember); }
+  .heart.c3 { color: var(--blush); }
+  .heart.caught {
+    scale: 1.7;
+    opacity: 0;
+    transition: scale 0.25s ease-out, opacity 0.25s ease-out;
+    pointer-events: none;
+  }
+
+  /* Game 2: memory */
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0 0; }
+  .card {
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: none;
+    aspect-ratio: 1 / 1.1;
+    perspective: 600px;
+    cursor: pointer;
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card .in { position: absolute; inset: 0; transition: transform 0.45s; transform-style: preserve-3d; }
+  .card.open .in, .card.match .in { transform: rotateY(180deg); }
+  .back, .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .back { background: var(--wine); border: 1.5px solid var(--line-strong); color: var(--rose); }
+  .back svg { width: 34%; opacity: 0.6; }
+  .face { transform: rotateY(180deg); background: var(--blush); }
+  .face svg { width: 52%; height: auto; }
+  .card.match .face { box-shadow: 0 0 0 2px var(--ember); }
+
+  /* Game 3: scratch */
+  .scratch {
+    position: relative;
+    height: 10rem;
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .under {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    text-align: center;
+    background: var(--wine);
+  }
+  .under small { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ember); }
+  .under strong { font-family: var(--display); font-weight: 400; font-size: clamp(1.9rem, 8vw, 2.6rem); line-height: 1.1; }
+  #foil {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: crosshair;
+    transition: opacity 0.6s;
+  }
+  #foil.gone { opacity: 0; pointer-events: none; }
+
+  /* Question */
+  .answers { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; min-height: 5.5rem; margin-top: 26px; }
+  #yes {
+    font-size: calc(1.1rem + var(--g, 0) * 0.14rem);
+    transition: font-size 0.35s ease;
+    animation: pulse 2.4s ease-out infinite;
+  }
+  .slot { display: inline-block; }
+  #no.fleeing {
+    position: fixed;
+    z-index: 5;
+    margin: 0;
+    white-space: nowrap;
+    background: var(--night);
+    transition: left 0.38s cubic-bezier(0.3, 1.35, 0.5, 1), top 0.38s cubic-bezier(0.3, 1.35, 0.5, 1);
+  }
+  #no.pop { animation: pop 0.35s ease-out; }
+  .hint { margin: 14px 0 0; min-height: 3.2em; color: var(--muted); }
+
+  @keyframes enter { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes glow {
+    0% { color: var(--ember); text-shadow: 0 0 14px var(--ember); }
+    100% { color: var(--blush); text-shadow: 0 0 0 transparent; }
+  }
+  @keyframes rise { to { transform: translateY(calc(-1 * var(--h))); } }
+  @keyframes sway {
+    from { transform: translateX(-9px) rotate(-8deg); }
+    to { transform: translateX(9px) rotate(8deg); }
+  }
+  @keyframes stay { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 var(--rose-glow); }
+    80%, 100% { box-shadow: 0 0 0 18px rgba(255, 125, 150, 0); }
+  }
+  @keyframes pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage, .clues dd.got { animation: none; }
+    .heart { bottom: var(--yy); animation: stay 5s linear forwards; }
+    .heart svg { animation: none; }
+    .card .in { transition: none; }
+    #yes { animation: none; transition: none; }
+    #no.fleeing { transition: none; }
+    #no.pop { animation: none; }
+    #foil { transition: none; }
+  }
+
+  @media (max-width: 380px) {
+    .grid { gap: 8px; }
+    .clues { gap: 8px; }
+  }
+</style>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<main class="wrap">
+  <header class="top">
+    <svg class="mark" viewBox="-1.3 -1.1 2.6 2.1" aria-hidden="true"><path d="M0 .9C-1.2 0 -.7 -.9 0 -.4C.7 -.9 1.2 0 0 .9Z" fill="currentColor"/></svg>
+    <p class="stepnum" id="stepnum">Шаг 1 из 5</p>
+  </header>
+  <div class="bar" id="bar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+
+  <dl class="clues" id="clues">
+    <div><dt>Когда</dt><dd data-v="Суббота, 14 ноября">?</dd></div>
+    <div><dt>Во сколько</dt><dd data-v="19:00">?</dd></div>
+    <div><dt>Где</dt><dd data-v="Ресторан «Нават»">?</dd></div>
+  </dl>
+
+  <section id="sWelcome" class="stage">
+    <p class="eyebrow">Для Анели</p>
+    <h1 class="title" tabindex="-1">Анель, у меня для тебя сюрприз</h1>
+    <p class="lead">Чтобы его открыть, пройди три коротких задания. Это быстро.</p>
+    <div class="nextrow"><button id="start" class="btn primary" type="button">Начать</button></div>
+  </section>
+
+  <section id="sHearts" class="stage" hidden>
+    <p class="eyebrow">Задание 1 из 3</p>
+    <h2 class="title sm" tabindex="-1">Поймай десять сердец</h2>
+    <p class="lead">Нажимай на сердечки, пока они не улетели.</p>
+    <p class="meter" aria-live="polite">Поймано: <b id="caught">0</b> из 10</p>
+    <div class="play" id="play"></div>
+    <div id="heartsDone" hidden>
+      <p class="doneline">Готово. Первая подсказка открыта.</p>
+      <div class="nextrow"><button id="next1" class="btn primary" type="button">Дальше</button></div>
+    </div>
+  </section>
+
+  <section id="sMemory" class="stage" hidden>
+    <p class="eyebrow">Задание 2 из 3</p>
+    <h2 class="title sm" tabindex="-1">Найди пары</h2>
+    <p class="lead">Открывай по две карточки. Одинаковые остаются на месте.</p>
+    <p class="meter" aria-live="polite">Ходов: <b id="moves">0</b></p>
+    <div class="grid" id="grid"></div>
+    <div id="memoryDone" hidden>
+      <p class="doneline">Готово. Вторая подсказка открыта.</p>
+      <div class="nextrow"><button id="next2" class="btn primary" type="button">Дальше</button></div>
+    </div>
+  </section>
+
+  <section id="sScratch" class="stage" hidden>
+    <p class="eyebrow">Задание 3 из 3</p>
+    <h2 class="title sm" tabindex="-1">Сотри защитный слой</h2>
+    <p class="lead">Под ним последняя подсказка.</p>
+    <div class="scratch" id="scratchBox">
+      <div class="under"><small>Где</small><strong>Ресторан «Нават»</strong></div>
+      <canvas id="foil"></canvas>
+    </div>
+    <div class="nextrow" id="skipRow"><button id="skip" class="linkbtn" type="button">Не получается? Открыть без стирания</button></div>
+    <div id="scratchDone" hidden>
+      <p class="doneline">Все подсказки собраны.</p>
+      <div class="nextrow"><button id="next3" class="btn primary" type="button">Дальше</button></div>
+    </div>
+  </section>
+
+  <section id="sAsk" class="stage" hidden>
+    <p class="eyebrow">Теперь главное</p>
+    <h2 class="title" tabindex="-1">Анель, пойдём на свидание?</h2>
+    <p class="lead">Один столик на двоих.</p>
+    <div class="answers">
+      <button id="yes" class="btn primary" type="button">Да</button>
+      <span id="slot" class="slot"><button id="no" class="btn ghost" type="button">Нет</button></span>
+    </div>
+    <p id="hint" class="hint" aria-live="polite">Выбери ответ.</p>
+  </section>
+
+  <section id="sDone" class="stage" hidden>
+    <p class="eyebrow">Свидание назначено</p>
+    <h2 class="title" tabindex="-1">Договорились.</h2>
+    <p class="lead">Увидимся в субботу, Анель.</p>
+    <p class="hint">Кнопка «Нет» больше не появится.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var sections = [$('sWelcome'), $('sHearts'), $('sMemory'), $('sScratch'), $('sAsk'), $('sDone')];
+  var barItems = $('bar').getElementsByTagName('i');
+  var clueEls = $('clues').getElementsByTagName('dd');
+
+  /* ---------- Ambient hearts and bursts ---------- */
+  var cv = $('fx'), ctx = cv.getContext('2d');
+  var dpr = Math.min(window.devicePixelRatio || 1, 2), W = 0, H = 0;
+  var ambient = [], parts = [];
+  var colors = ['#ff7d96', '#f5b86e', '#ffe1da'];
+
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function drawHeart(x, y, s, rot, color, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.scale(s, s);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 0.9);
+    ctx.bezierCurveTo(-1.2, 0, -0.7, -0.9, 0, -0.4);
+    ctx.bezierCurveTo(0.7, -0.9, 1.2, 0, 0, 0.9);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function seed() {
+    var i;
+    ambient = [];
+    for (i = 0; i < 22; i++) {
+      ambient.push({
+        x: rand(0, W), y: rand(0, H), s: rand(6, 16),
+        vy: rand(0.15, 0.5), ph: rand(0, 6.28), sw: rand(0.2, 0.6),
+        a: rand(0.07, 0.22), c: colors[i % 2], r: rand(-0.4, 0.4)
+      });
+    }
+  }
+
+  function frame() {
+    var i, p;
+    ctx.clearRect(0, 0, W, H);
+    for (i = 0; i < ambient.length; i++) {
+      p = ambient[i];
+      if (!reduce) {
+        p.y -= p.vy;
+        p.ph += 0.012;
+        if (p.y < -30) { p.y = H + 30; p.x = rand(0, W); }
+      }
+      drawHeart(p.x + Math.sin(p.ph) * 14 * p.sw, p.y, p.s, p.r, p.c, p.a);
+    }
+    for (i = parts.length - 1; i >= 0; i--) {
+      p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life--; p.r += p.vr;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      drawHeart(p.x, p.y, p.s, p.r, p.c, Math.min(1, p.life / 40));
+    }
+    if (!reduce) requestAnimationFrame(frame);
+  }
+
+  function burst(x, y, count) {
+    if (reduce) return;
+    var i, a, v;
+    for (i = 0; i < count; i++) {
+      a = rand(0, 6.28); v = rand(2, 7);
+      parts.push({
+        x: x, y: y,
+        vx: Math.cos(a) * v, vy: Math.sin(a) * v - 3,
+        s: rand(8, 18), r: rand(-0.5, 0.5), vr: rand(-0.05, 0.05),
+        c: colors[i % 3], life: Math.floor(rand(70, 120))
+      });
+    }
+  }
+
+  /* ---------- Stage navigation ---------- */
+  var current = 0;
+
+  function go(i) {
+    var k, sec, h;
+    stopHearts();
+    for (k = 0; k < sections.length; k++) sections[k].hidden = true;
+    sec = sections[i];
+    sec.hidden = false;
+    sec.classList.remove('stage');
+    void sec.offsetWidth;
+    sec.classList.add('stage');
+    current = i;
+    for (k = 0; k < barItems.length; k++) {
+      if (k <= i) barItems[k].classList.add('on'); else barItems[k].classList.remove('on');
+    }
+    $('stepnum').textContent = i < 5 ? 'Шаг ' + (i + 1) + ' из 5' : 'Всё готово';
+    window.scrollTo(0, 0);
+    h = sec.querySelector('[tabindex="-1"]');
+    if (h) { try { h.focus({ preventScroll: true }); } catch (e) {} }
+    if (i === 1) startHearts();
+    if (i === 2) buildMemory();
+    if (i === 3) initScratch();
+  }
+
+  function revealClue(k) {
+    var dd = clueEls[k];
+    dd.textContent = dd.getAttribute('data-v');
+    dd.classList.add('got');
+  }
+
+  /* ---------- Game 1: catch hearts ---------- */
+  var play = $('play'), caughtEl = $('caught');
+  var hg = { timer: null, count: 0, live: 0, done: false };
+  var HEART_SVG = '<svg viewBox="-1.3 -1.1 2.6 2.1" fill="currentColor" aria-hidden="true"><path d="M0 .9C-1.2 0 -.7 -.9 0 -.4C.7 -.9 1.2 0 0 .9Z"/></svg>';
+
+  function stopHearts() {
+    if (hg.timer) { clearInterval(hg.timer); hg.timer = null; }
+  }
+
+  function startHearts() {
+    stopHearts();
+    play.innerHTML = '';
+    hg.count = 0; hg.live = 0; hg.done = false;
+    caughtEl.textContent = '0';
+    $('heartsDone').hidden = true;
+    play.style.setProperty('--h', (play.clientHeight + 70) + 'px');
+    spawnHeart(); spawnHeart(); spawnHeart();
+    hg.timer = setInterval(function () {
+      if (!hg.done && hg.live < 7) spawnHeart();
+    }, 650);
+  }
+
+  function spawnHeart() {
+    var el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'heart c' + (1 + Math.floor(Math.random() * 3));
+    el.setAttribute('aria-label', 'Сердце');
+    el.style.setProperty('--x', rand(0, 1).toFixed(3));
+    el.style.setProperty('--yy', rand(4, 70).toFixed(0) + '%');
+    el.style.setProperty('--dur', rand(4.5, 6.5).toFixed(2) + 's');
+    el.innerHTML = HEART_SVG;
+    el.addEventListener('animationend', function (e) {
+      if (e.target !== el) return;
+      if (!el.getAttribute('data-c')) { hg.live--; }
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+    el.addEventListener('pointerdown', function (e) { e.preventDefault(); catchHeart(el, e.clientX, e.clientY); });
+    el.addEventListener('click', function (e) { if (e.detail === 0) { var r = el.getBoundingClientRect(); catchHeart(el, r.left + 26, r.top + 26); } });
+    play.appendChild(el);
+    hg.live++;
+  }
+
+  function catchHeart(el, x, y) {
+    if (el.getAttribute('data-c') || hg.done) return;
+    el.setAttribute('data-c', '1');
+    hg.live--;
+    var tr = window.getComputedStyle(el).transform;
+    el.style.animation = 'none';
+    el.style.transform = tr === 'none' ? '' : tr;
+    el.classList.add('caught');
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 320);
+    hg.count++;
+    caughtEl.textContent = String(hg.count);
+    burst(x, y, 10);
+    if (hg.count >= 10) finishHearts();
+  }
+
+  function finishHearts() {
+    hg.done = true;
+    stopHearts();
+    var rest = play.querySelectorAll('.heart:not(.caught)'), i;
+    for (i = 0; i < rest.length; i++) rest[i].parentNode.removeChild(rest[i]);
+    revealClue(0);
+    $('heartsDone').hidden = false;
+    burst(W / 2, H * 0.35, 50);
+  }
+
+  /* ---------- Game 2: memory pairs ---------- */
+  var icons = [
+    { n: 'сердце', p: '<path d="M12 21C5 15.5 3 11.5 3 8.5A4.5 4.5 0 0 1 12 6.5A4.5 4.5 0 0 1 21 8.5C21 11.5 19 15.5 12 21Z"/>' },
+    { n: 'звезда', p: '<polygon points="12,2.5 14.9,8.9 21.8,9.6 16.6,14.2 18.1,21 12,17.5 5.9,21 7.4,14.2 2.2,9.6 9.1,8.9"/>' },
+    { n: 'луна', p: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4A6.8 6.8 0 0 0 20 14.5Z"/>' },
+    { n: 'ромб', p: '<path d="M12 2.5L21 12L12 21.5L3 12Z"/>' },
+    { n: 'капля', p: '<path d="M12 2.8C12 2.8 5.5 10 5.5 14.5A6.5 6.5 0 0 0 18.5 14.5C18.5 10 12 2.8 12 2.8Z"/>' },
+    { n: 'искра', p: '<path d="M12 2C12.8 8 16 11.2 22 12C16 12.8 12.8 16 12 22C11.2 16 8 12.8 2 12C8 11.2 11.2 8 12 2Z"/>' }
+  ];
+  var faceColors = ['var(--deep-rose)', 'var(--deep-gold)', 'var(--wine)'];
+  var mem = { first: null, lock: false, moves: 0, matched: 0 };
+
+  function shuffle(a) {
+    var i, j, t;
+    for (i = a.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function closedLabel(card) { return 'Карточка ' + (Number(card.getAttribute('data-i')) + 1) + ', закрыта'; }
+
+  function buildMemory() {
+    var grid = $('grid'), deck = shuffle([0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5]), i, b;
+    grid.innerHTML = '';
+    mem.first = null; mem.lock = false; mem.moves = 0; mem.matched = 0;
+    $('moves').textContent = '0';
+    $('memoryDone').hidden = true;
+    for (i = 0; i < deck.length; i++) {
+      b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'card';
+      b.setAttribute('data-k', deck[i]);
+      b.setAttribute('data-i', i);
+      b.innerHTML =
+        '<span class="in">' +
+        '<span class="back">' + HEART_SVG + '</span>' +
+        '<span class="face" style="color:' + faceColors[deck[i] % 3] + '"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' + icons[deck[i]].p + '</svg></span>' +
+        '</span>';
+      b.setAttribute('aria-label', closedLabel(b));
+      b.addEventListener('click', onCard);
+      grid.appendChild(b);
+    }
+  }
+
+  function onCard(e) {
+    var card = e.currentTarget;
+    if (mem.lock || card.classList.contains('open') || card.classList.contains('match')) return;
+    card.classList.add('open');
+    card.setAttribute('aria-label', icons[Number(card.getAttribute('data-k'))].n);
+    if (!mem.first) { mem.first = card; return; }
+    var a = mem.first;
+    mem.first = null;
+    mem.moves++;
+    $('moves').textContent = String(mem.moves);
+    if (a.getAttribute('data-k') === card.getAttribute('data-k')) {
+      a.classList.remove('open'); card.classList.remove('open');
+      a.classList.add('match'); card.classList.add('match');
+      mem.matched++;
+      if (mem.matched === 6) finishMemory();
+    } else {
+      mem.lock = true;
+      setTimeout(function () {
+        a.classList.remove('open'); card.classList.remove('open');
+        a.setAttribute('aria-label', closedLabel(a));
+        card.setAttribute('aria-label', closedLabel(card));
+        mem.lock = false;
+      }, 750);
+    }
+  }
+
+  function finishMemory() {
+    revealClue(1);
+    $('memoryDone').hidden = false;
+    burst(W / 2, H * 0.4, 50);
+  }
+
+  /* ---------- Game 3: scratch card ---------- */
+  var foil = $('foil'), fctx = foil.getContext('2d');
+  var sc = { drawing: false, x: 0, y: 0, revealed: false, lastCheck: 0 };
+
+  function initScratch() {
+    var box = $('scratchBox'), w = box.clientWidth, h = box.clientHeight, i, lg;
+    foil.width = Math.round(w * dpr);
+    foil.height = Math.round(h * dpr);
+    fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fctx.globalCompositeOperation = 'source-over';
+    fctx.globalAlpha = 1;
+    lg = fctx.createLinearGradient(0, 0, w, h);
+    lg.addColorStop(0, '#d9a35a');
+    lg.addColorStop(0.35, '#f6d9a8');
+    lg.addColorStop(0.6, '#c98a52');
+    lg.addColorStop(1, '#ff9bb0');
+    fctx.fillStyle = lg;
+    fctx.fillRect(0, 0, w, h);
+    fctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    fctx.lineWidth = 1;
+    for (i = -h; i < w; i += 14) {
+      fctx.beginPath(); fctx.moveTo(i, h); fctx.lineTo(i + h, 0); fctx.stroke();
+    }
+    fctx.fillStyle = 'rgba(42,15,31,0.8)';
+    fctx.font = '700 16px Manrope, system-ui, sans-serif';
+    fctx.textAlign = 'center';
+    fctx.textBaseline = 'middle';
+    fctx.fillText('Сотри, чтобы узнать, где', w / 2, h / 2);
+    foil.classList.remove('gone');
+    sc.revealed = false; sc.drawing = false;
+    $('scratchDone').hidden = true;
+    $('skipRow').hidden = false;
+  }
+
+  function scratchTo(x, y) {
+    fctx.globalCompositeOperation = 'destination-out';
+    fctx.lineWidth = 38;
+    fctx.lineCap = 'round';
+    fctx.beginPath();
+    fctx.moveTo(sc.x, sc.y);
+    fctx.lineTo(x, y);
+    fctx.stroke();
+    sc.x = x; sc.y = y;
+  }
+
+  function checkScratch(force) {
+    if (sc.revealed) return;
+    var now = Date.now();
+    if (!force && now - sc.lastCheck < 180) return;
+    sc.lastCheck = now;
+    var d = fctx.getImageData(0, 0, foil.width, foil.height).data, i, total = 0, cleared = 0;
+    for (i = 3; i < d.length; i += 148) { total++; if (d[i] < 40) cleared++; }
+    if (total && cleared / total > 0.5) revealScratch();
+  }
+
+  function revealScratch() {
+    if (sc.revealed) return;
+    sc.revealed = true;
+    foil.classList.add('gone');
+    revealClue(2);
+    $('skipRow').hidden = true;
+    $('scratchDone').hidden = false;
+    burst(W / 2, H * 0.4, 60);
+  }
+
+  function pos(e) {
+    var r = foil.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  foil.addEventListener('pointerdown', function (e) {
+    e.preventDefault();
+    try { foil.setPointerCapture(e.pointerId); } catch (err) {}
+    var p = pos(e);
+    sc.drawing = true; sc.x = p.x; sc.y = p.y;
+    scratchTo(p.x, p.y);
+  });
+  foil.addEventListener('pointermove', function (e) {
+    if (!sc.drawing) return;
+    var p = pos(e);
+    scratchTo(p.x, p.y);
+    checkScratch(false);
+  });
+  function endScratch() {
+    if (!sc.drawing) return;
+    sc.drawing = false;
+    checkScratch(true);
+  }
+  foil.addEventListener('pointerup', endScratch);
+  foil.addEventListener('pointercancel', endScratch);
+
+  /* ---------- Question with the shy "No" ---------- */
+  var yes = $('yes'), no = $('no'), slot = $('slot'), hint = $('hint');
+  var hints = [
+    'Выбери ответ.',
+    'Кнопка «Нет» убежала. Бывает.',
+    'Поймать её не получится, она стеснительная.',
+    'Анель, подумай ещё раз.',
+    'Будет вкусный ужин и хорошая компания.',
+    'Кнопка «Да» уже выросла. Она очень старается.',
+    'Последняя попытка. «Нет» почти сдалась.',
+    'Совсем чуть-чуть осталось.',
+    '«Нет» сдалась. Остался один ответ.'
+  ];
+  var labels = ['Нет', 'Нет?', 'Ну нет', 'Может…', 'Подумаю', 'Хм…', 'Эм…'];
+  var MAX = 8, n = 0, last = 0, finalMode = false;
+
+  function dodge() {
+    if (finalMode) return;
+    var now = Date.now();
+    if (now - last < 280) return;
+    last = now;
+    n++;
+    if (n >= MAX) { becomeYes(); return; }
+
+    if (!no.classList.contains('fleeing')) {
+      var r0 = no.getBoundingClientRect();
+      slot.style.width = r0.width + 'px';
+      slot.style.height = r0.height + 'px';
+      no.style.left = r0.left + 'px';
+      no.style.top = r0.top + 'px';
+      no.classList.add('fleeing');
+      void no.offsetWidth;
+    }
+
+    no.textContent = labels[Math.min(n, labels.length - 1)];
+    yes.style.setProperty('--g', n);
+    hint.textContent = hints[n];
+
+    var w = window.innerWidth, h = window.innerHeight;
+    var bw = no.offsetWidth, bh = no.offsetHeight;
+    var yr = yes.getBoundingClientRect();
+    var cur = no.getBoundingClientRect();
+    var x = 16, y = 60, i, px, py, hit, far;
+    for (i = 0; i < 40; i++) {
+      px = rand(16, Math.max(16, w - bw - 16));
+      py = rand(56, Math.max(56, h - bh - 16));
+      hit = px < yr.right + 18 && px + bw > yr.left - 18 && py < yr.bottom + 18 && py + bh > yr.top - 18;
+      far = Math.abs(px - cur.left) + Math.abs(py - cur.top) > 120;
+      x = px; y = py;
+      if (!hit && far) break;
+    }
+    no.style.left = x + 'px';
+    no.style.top = y + 'px';
+  }
+
+  function becomeYes() {
+    finalMode = true;
+    no.classList.remove('fleeing');
+    no.style.left = '';
+    no.style.top = '';
+    slot.style.width = '';
+    slot.style.height = '';
+    no.textContent = 'Ладно, да';
+    yes.style.setProperty('--g', 7);
+    hint.textContent = hints[MAX];
+    no.classList.add('pop');
+  }
+
+  function accept() {
+    go(5);
+    burst(W / 2, H * 0.42, 80);
+  }
+
+  no.addEventListener('pointerenter', function (e) {
+    if (e.pointerType === 'mouse') dodge();
+  });
+  no.addEventListener('pointerdown', function (e) {
+    if (!finalMode) { e.preventDefault(); dodge(); }
+  });
+  no.addEventListener('click', function () {
+    if (finalMode) accept(); else dodge();
+  });
+  yes.addEventListener('click', accept);
+
+  /* ---------- Wiring ---------- */
+  $('start').addEventListener('click', function () { go(1); });
+  $('next1').addEventListener('click', function () { go(2); });
+  $('next2').addEventListener('click', function () { go(3); });
+  $('next3').addEventListener('click', function () { go(4); });
+  $('skip').addEventListener('click', revealScratch);
+
+  resize();
+  seed();
+  frame();
+  window.addEventListener('resize', function () {
+    resize();
+    if (reduce) frame();
+  });
+})();
+</script>
+
+</body></html>
